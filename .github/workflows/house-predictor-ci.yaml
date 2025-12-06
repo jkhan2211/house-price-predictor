@@ -35,14 +35,7 @@ jobs:
         run: |
           python src/features/engineer.py   --input data/processed/cleaned_house_data.csv   --output data/processed/featured_house_data.csv   --preprocessor models/trained/preprocessor.pkl
       
-      - name: Upload processed data
-        env:
-          DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-        run: |
-            dagshub upload --bucket jkhan2211/house-price-predictor "data/processed/featured_house_data.csv"
 
-
-  
   model_training:
     needs: data-processing
     runs-on: ubuntu-latest
