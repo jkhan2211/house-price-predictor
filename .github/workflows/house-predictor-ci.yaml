@@ -106,4 +106,12 @@ jobs:
         with:
           registry: docker.io
           username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN 
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: docker.io/${{ vars.DOCKERHUB_USERNAME }}/house-pricemodel:latest
