@@ -14,7 +14,8 @@ import logging
 from mlflow.tracking import MlflowClient
 import platform
 import sklearn
-import dagshub   # 👈 ADD THIS LINE
+import dagshub
+import os
 
 
 # -----------------------------
@@ -56,12 +57,12 @@ def main(args):
         config = yaml.safe_load(f)
     model_cfg = config['model']
     
-    dagshub.init(
-        repo_owner='jkhan2211',
-        repo_name='house-price-predictor',
-        mlflow=True
-    )
-    mlflow.set_experiment(model_cfg['name'])
+    mlflow_uri = os.getenv(
+        "MLFLOW_TRACKING_URI",
+        "https://dagshub.com/jkhan2211/house-price-predictor.mlflow"
+        )
+    mlflow.set_tracking_uri(mlflow_uri)
+
 
     # Load data
     data = pd.read_csv(args.data)
