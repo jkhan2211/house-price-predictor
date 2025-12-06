@@ -20,6 +20,7 @@ seaborn==0.12.2        # High-level interface for drawing attractive and informa
 # ---------------------------------------------
 mlflow==2.3.1          # End-to-end ML lifecycle tracking, including experiment tracking, model packaging, and deployment
 
+dagshub
 # ---------------------------------------------
 # ✅ TESTING
 # ---------------------------------------------

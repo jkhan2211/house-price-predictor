@@ -16,6 +16,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger('feature-engineering')
 
+# Create features, geenrate house age, price per sqf, bed/bath ratio
 def create_features(df):
     """Create new features from existing data."""
     logger.info("Creating new features")

@@ -14,6 +14,8 @@ import logging
 from mlflow.tracking import MlflowClient
 import platform
 import sklearn
+import dagshub   # 👈 ADD THIS LINE
+
 
 # -----------------------------
 # Configure logging
@@ -29,7 +31,6 @@ def parse_args():
     parser.add_argument("--config", type=str, required=True, help="Path to model_config.yaml")
     parser.add_argument("--data", type=str, required=True, help="Path to processed CSV dataset")
     parser.add_argument("--models-dir", type=str, required=True, help="Directory to save trained model")
-    parser.add_argument("--mlflow-tracking-uri", type=str, default=None, help="MLflow tracking URI")
     return parser.parse_args()
 
 # -----------------------------
@@ -54,10 +55,13 @@ def main(args):
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
     model_cfg = config['model']
-
-    if args.mlflow_tracking_uri:
-        mlflow.set_tracking_uri(args.mlflow_tracking_uri)
-        mlflow.set_experiment(model_cfg['name'])
+    
+    dagshub.init(
+        repo_owner='jkhan2211',
+        repo_name='house-price-predictor',
+        mlflow=True
+    )
+    mlflow.set_experiment(model_cfg['name'])
 
     # Load data
     data = pd.read_csv(args.data)
