@@ -40,14 +40,6 @@ jobs:
         with:
           name: processed-data
           path: data/processed/featured_house_data.csv
-
-      - name: Uplodad preprocessor
-        env:
-          DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-        run: |
-          pip install dagshub
-          dagshub upload --bucket jkhan2211/house-price-predictor models/trained/preprocessor.pkl --path models/trained/preprocessor.pkl --token $DAGSHUB_TOKEN
-
   
   model_training:
     needs: data-processing
@@ -78,11 +70,10 @@ jobs:
           DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
           pip install dagshub
-          dagshub download --bucket jkhan2211/house-price-predictor models/trained/preprocessor.pkl --path models/trained/preprocessor.pkl --token $DAGSHUB_TOKEN
-
+          dagshub download --bucket jkhan2211/house-price-predictor "models/trained/preprocessor.pkl"
       - name: Run Model Training
         run: |
-          python src/models/train.py   --input data/processed/featured_house_data.csv   --output models/trained/model.pkl   --preprocessor models/trained/preprocessor.pkl
+          python src/models/train.py  --input data/processed/featured_house_data.csv   --output models/trained/model.pkl   --preprocessor models/trained/preprocessor.pkl
 
       - name: Upload trained model
         uses: actions/upload-artifact@v4
