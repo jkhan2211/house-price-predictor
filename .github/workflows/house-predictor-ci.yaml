@@ -106,7 +106,7 @@ jobs:
         with:
           registry: docker.io
           username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
