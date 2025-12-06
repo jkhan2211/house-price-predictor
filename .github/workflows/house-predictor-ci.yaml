@@ -37,7 +37,7 @@ jobs:
 
       - name: Upload processed data
         run: |
-          dagshub upload jkhan2211/house-price-predictor data/processed/featured_house_data.csv data/processed/featured_house_data.csv
+          dagshub upload --bucket jkhan2211/house-price-predictor data/processed/featured_house_data.csv data/processed/featured_house_data.csv
 
       # - name: Upload preprocessor
       #   uses: actions/upload-artifact@v4
