@@ -23,3 +23,31 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      
+      - name: Run Data Processing
+        run: |
+          cd src/data_processing
+          python src/data/run_processing.py \
+             --input data/raw/house_data.csv \  
+             --output data/processed/cleaned_house_data.csv
+      
+      - name: Run Feature Engineering
+        run: |
+          cd src/features
+          python src/features/engineer.py \  
+            --input data/processed/cleaned_house_data.csv \   
+            --output data/processed/featured_house_data.csv \  
+            --preprocessor models/trained/preprocessor.pkl
+      
+      - name: Run Training Model
+        env:
+          MLFLOW_TRACKING_URI: "https://dagshub.com/jkhan2211/house-price-predictor.mlflow"
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          python src/models/train_model.py \
+            --config configs/model_config.yaml \
+            --data data/processed/featured_house_data.csv \
+            --models-dir models
+
+
