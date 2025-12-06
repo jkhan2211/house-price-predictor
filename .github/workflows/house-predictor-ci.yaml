@@ -38,7 +38,7 @@ jobs:
       - name: Upload processed data
         env:
           DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-          run: |
+        run: |
             dagshub upload --bucket jkhan2211/house-price-predictor "data/processed/featured_house_data.csv" # "data/processed/featured_house_data.csv"
 
 
