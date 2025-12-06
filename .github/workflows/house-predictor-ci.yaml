@@ -34,12 +34,14 @@ jobs:
       - name: Run Feature Engineering
         run: |
           python src/features/engineer.py   --input data/processed/cleaned_house_data.csv   --output data/processed/featured_house_data.csv   --preprocessor models/trained/preprocessor.pkl
-
+      
       - name: Upload processed data
-        uses: actions/upload-artifact@v4
-        with:
-          name: processed-data
-          path: data/processed/featured_house_data.csv
+        env:
+          DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+          run: |
+            dagshub upload --bucket jkhan2211/house-price-predictor "data/processed/featured_house_data.csv" # "data/processed/featured_house_data.csv"
+
+
   
   model_training:
     needs: data-processing
@@ -59,11 +61,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
-      - name: Download processed data
-        uses: actions/download-artifact@v4
-        with:
-          name: processed-data
-          path: data/processed/featured_house_data.csv
+      - name: Download processed data 
+        env:
+          DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+        run: |
+          pip install dagshub
+          dagshub download --bucket jkhan2211/house-price-predictor data/processed/featured_house_data.csv"
 
       - name: Download preprocessor
         env:
@@ -71,6 +74,7 @@ jobs:
         run: |
           pip install dagshub
           dagshub download --bucket jkhan2211/house-price-predictor "models/trained/preprocessor.pkl"
+
       - name: Run Model Training
         run: |
           python src/models/train.py  --input data/processed/featured_house_data.csv   --output models/trained/model.pkl   --preprocessor models/trained/preprocessor.pkl
