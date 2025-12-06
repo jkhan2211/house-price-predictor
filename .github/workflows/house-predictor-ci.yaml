@@ -36,14 +36,16 @@ jobs:
           python src/features/engineer.py   --input data/processed/cleaned_house_data.csv   --output data/processed/featured_house_data.csv   --preprocessor models/trained/preprocessor.pkl
 
       - name: Upload processed data
-        run: |
-          dagshub upload --bucket jkhan2211/house-price-predictor data/processed/featured_house_data.csv data/processed/featured_house_data.csv
+        uses: actions/upload-artifact@v4
+        with:
+          name: processed-data
+          path: data/processed/featured_house_data.csv
 
-      # - name: Upload preprocessor
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: preprocessor
-      #   path: models/trained/preprocessor.pkl
+      - name: Upload preprocessor
+        uses: actions/upload-artifact@v4
+        with:
+          name: preprocessor
+        path: models/trained/preprocessor.pkl
       
 
   model_training:
@@ -64,26 +66,44 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
-      - name: Download processed data 
-        env:
-          DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-        run: |
-          pip install dagshub
-          dagshub download --bucket jkhan2211/house-price-predictor data/processed/featured_house_data.csv"
-
-      - name: Download preprocessor
-        env:
-          DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
-        run: |
-          pip install dagshub
-          dagshub download --bucket jkhan2211/house-price-predictor "models/trained/preprocessor.pkl"
-
-      - name: Run Model Training
-        run: |
-          python src/models/train.py  --input data/processed/featured_house_data.csv   --output models/trained/model.pkl   --preprocessor models/trained/preprocessor.pkl
+      - name: Download processed data
+        uses: actions/download-artifact@v4
+        with:
+          name: processed-data
+          path: data/processed/
 
       - name: Upload trained model
         uses: actions/upload-artifact@v4
         with:
           name: trained-model
-          path: models/trained/model.pkl
+          path: models/
+
+  build-and-publish:
+    needs: ["data-processing", "model_training"]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download trained model
+        uses: actions/download-artifact@v4
+        with:
+          name: trained-model
+          path: models/
+      
+      - name: Download preprocessor
+        uses: actions/download-artifact@v4
+        with:
+          name: preprocessor
+          path: models/trained/
+          
+      - name: Setup Docker BuildX
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to DockerHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN 
