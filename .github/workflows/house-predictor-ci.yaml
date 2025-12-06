@@ -9,12 +9,14 @@ on:
       - main
 
 jobs:
-  mlpipeline-ci:
+  data-processing:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11.5'
@@ -32,33 +34,55 @@ jobs:
       - name: Run Feature Engineering
         run: |
           python src/features/engineer.py   --input data/processed/cleaned_house_data.csv   --output data/processed/featured_house_data.csv   --preprocessor models/trained/preprocessor.pkl
- 
+
+      - name: Upload processed data
+        uses: actions/upload-artifact@v4
+        with:
+          name: processed-data
+          path: data/processed/featured_house_data.csv
+
+      - name: Uplodad preprocessor
+        uses: actions/upload-artifact@v4
+        with:
+          name: preprocessor
+          path: models/trained/preprocessor.pkl
+  
+  model_training:
+    needs: data-processing
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
       
-      - name: Run Training Model
-        env:
-          MLFLOW_TRACKING_URI: "https://dagshub.com/jkhan2211/house-price-predictor.mlflow"
-          MLFLOW_TRACKING_USERNAME: ${{ secrets.DAGSHUB_USERNAME }}
-          MLFLOW_TRACKING_PASSWORD: ${{ secrets.DAGSHUB_TOKEN }}
-          DAGSHUB_USER_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11.5'
+          
+      - name: Install dependencies
         run: |
-          python src/models/train_model.py \
-            --config configs/model_config.yaml \
-            --data data/processed/featured_house_data.csv \
-            --models-dir models
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
       
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Download processed data
+        uses: actions/download-artifact@v4
         with:
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      
-      - name: Set up Docker BuildX
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+          name: processed-data
+          path: data/processed/featured_house_data.csv
+
+      - name: Download preprocessor
+        uses: actions/download-artifact@v4
         with:
-          push: true
-          tags: jkhandockerlab420/hp_fastapi:${{ github.sha }}
-          context: "."
-          file: "Dockerfile"
+          name: preprocessor
+          path: models/trained/preprocessor.pkl
+
+      - name: Run Model Training
+        run: |
+          python src/models/train.py   --input data/processed/featured_house_data.csv   --output models/trained/model.pkl   --preprocessor models/trained/preprocessor.pkl
+
+      - name: Upload trained model
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-model
+          path: models/trained/model.pkl
