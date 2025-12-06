@@ -45,7 +45,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: preprocessor
-        path: models/trained/preprocessor.pkl
+          path: models/trained/preprocessor.pkl
       
 
   model_training:
