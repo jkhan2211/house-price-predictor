@@ -38,5 +38,5 @@ dist/
 *.egg-info/
 
 # Ignore all .pkl files (models, preprocessors, etc.)
-*.pkl
+house_price_model.pkl
 
